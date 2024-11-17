@@ -1,6 +1,7 @@
 import os
 import uuid
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from collections import OrderedDict
 
@@ -8,6 +9,7 @@ from pdf_Scraper import parse_pdf
 from db import initialize_database, insert_account, insert_transactions, get_account_db, get_transactions_db
 
 app = Flask(__name__)
+CORS(app)
 
 db_name = "bank_statements.db"
 
@@ -130,6 +132,7 @@ def upload_statement():
 
     # Generate a unique identifier for this transaction
     statement_uuid = str(uuid.uuid4())
+    print(statement_uuid)
 
     process_statement(file_path, statement_uuid)
 
@@ -142,7 +145,6 @@ def process_statement(file_path, statement_uuid):
     """
     Process the bank statement file (parse, extract data, save to DB).
     """
-    print(f"Processing file: {file_path}")
     db_name = "bank_statements.db"
 
     initialize_database(db_name)
