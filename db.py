@@ -12,7 +12,8 @@ def initialize_database(db_name):
             account_name TEXT,
             account_number TEXT,
             address TEXT,
-            statement_date TEXT
+            statement_date TEXT,
+            uuid TEXT UNIQUE
         )
     ''')
 
@@ -32,20 +33,21 @@ def initialize_database(db_name):
     conn.commit()
     conn.close()
 
-def insert_account(account_info, db_name):
+def insert_account(account_info, db_name, statement_uuid):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
     # Insert into Account table
     cursor.execute('''
-        INSERT INTO Account (account_holder, account_name, account_number, address, statement_date)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO Account (account_holder, account_name, account_number, address, statement_date, uuid)
+        VALUES (?, ?, ?, ?, ?, ?)
     ''', (
         account_info['account_holder'],
         account_info['account_name'],
         account_info['account_number'],
         account_info['address'],
-        account_info['statement_date']
+        account_info['statement_date'],
+        statement_uuid
     ))
 
     # Get the inserted account_id
