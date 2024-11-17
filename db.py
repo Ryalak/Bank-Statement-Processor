@@ -78,20 +78,24 @@ def insert_transactions(account_id, transactions, db_name):
     conn.commit()
     conn.close()
 
-def get_account(account_id, db_name):
+def get_account_db(uuid, db_name):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM Account WHERE account_id = ?', (account_id,))
+    cursor.execute('SELECT * FROM Account WHERE uuid = ?', (uuid,))
     account = cursor.fetchone()
-    conn.close()
-    return account
 
-def get_transactions(account_id, db_name):
+    cursor.execute('SELECT COUNT(*), MIN(date), MAX(date), (SELECT balance FROM [Transaction] WHERE account_id = ? ORDER BY date ASC LIMIT 1), (SELECT balance FROM [Transaction] WHERE account_id = ? ORDER BY date DESC, transaction_id DESC LIMIT 1) FROM [Transaction] WHERE account_id = ?', (account[0], account[0], account[0]))
+    transaction_summary = cursor.fetchone()
+
+    conn.close()
+    return account, transaction_summary
+
+def get_transactions_db(account_id, db_name):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
-    cursor.execute('SELECT * FROM [Transaction] WHERE account_id = ?', (account_id,))
+    cursor.execute('SELECT transaction_id, date, description, amount, type, balance FROM [Transaction] WHERE account_id = ?', (account_id,))
     transactions = cursor.fetchall()
     conn.close()
     return transactions

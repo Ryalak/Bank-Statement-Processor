@@ -5,10 +5,12 @@ from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from collections import OrderedDict
 
-from pdf_Scraper import parse_pdf, extract_transactions, extract_account_info
-from db import initialize_database, insert_account, insert_transactions, get_account, get_transactions
+from pdf_Scraper import parse_pdf
+from db import initialize_database, insert_account, insert_transactions, get_account_db, get_transactions_db
 
 app = Flask(__name__)
+
+db_name = "bank_statements.db"
 
 # Configure upload folder
 UPLOAD_FOLDER = './uploads'
@@ -26,13 +28,7 @@ def get_transactions():
     if not statement_uuid:
         return jsonify({"error": "UUID is required"}), 400
 
-    db_name = "bank_statements.db"
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-
-    # Query the Account table to get the account_id using the UUID
-    cursor.execute('SELECT account_id FROM Account WHERE uuid = ?', (statement_uuid,))
-    account = cursor.fetchone()
+    account, transaction_summary = get_account_db(statement_uuid, db_name)
 
     if not account:
         return jsonify(
@@ -44,12 +40,9 @@ def get_transactions():
 
     account_id = account[0]
 
-    # Query the Transactions table for all transactions linked to this account_id
-    cursor.execute('''
-        SELECT transaction_id, date, description, amount, type, balance FROM [Transaction] WHERE account_id = ? ORDER BY date ASC ''', (account_id,))
+    print(account_id)
 
-    transactions = cursor.fetchall()
-    conn.close()
+    transactions = get_transactions_db(account_id, db_name)
 
     transaction_data = [
         {
@@ -82,13 +75,7 @@ def get_account():
     if not statement_uuid:
         return jsonify({"error": "UUID is required"}), 400
 
-    db_name = "bank_statements.db"
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-
-    # Query the Account table by UUID
-    cursor.execute('SELECT * FROM Account WHERE uuid = ?', (statement_uuid,))
-    account = cursor.fetchone()
+    account, transaction_summary = get_account_db(statement_uuid, db_name)
 
     if not account:
         return jsonify(
@@ -98,16 +85,11 @@ def get_account():
                 "data": None
             }), 404
 
-    cursor.execute('SELECT COUNT(*), MIN(date), MAX(date), (SELECT balance FROM [Transaction] WHERE account_id = ? ORDER BY date ASC LIMIT 1), (SELECT balance FROM [Transaction] WHERE account_id = ? ORDER BY date DESC, transaction_id DESC LIMIT 1) FROM [Transaction] WHERE account_id = ?', (account[0], account[0], account[0]))
-    transaction_summary = cursor.fetchone()
-
     transaction_count = transaction_summary[0] or 0
     from_date = transaction_summary[1] or ""
     to_date = transaction_summary[2] or ""
     opening_balance = transaction_summary[3] or 0.0
     closing_balance = transaction_summary[4] or 0.0
-
-    conn.close()
 
     # Map account fields to a JSON response
     account_info = OrderedDict({
@@ -173,8 +155,6 @@ def process_statement(file_path, statement_uuid):
 
     account_id = insert_account(account_info, db_name, statement_uuid)
     insert_transactions(account_id, transactions, db_name)
-
-    print(f"Processed statement for account: {account_info['account_holder']}")
 
 
 if __name__ == '__main__':
