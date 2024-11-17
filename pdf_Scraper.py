@@ -41,20 +41,24 @@ def extract_transactions(text):
 
     # Split by lines to handle each transaction individually
     lines = text.split("\n")
+    previous_balance = 0.0
     for line in lines:
         match = transaction_pattern.search(line)
         if match:
             date = match.group(1)
             description = match.group(2).strip()
-            credit_or_debit = match.group(3) if match.group(3) else None
+            amount = match.group(3) if match.group(3) else None
             balance = match.group(4) if match.group(4) else None
 
             transactions.append({
                 'date': date,
                 'description': description,
-                'credit_or_debit': float(credit_or_debit) if credit_or_debit else None,
+                'amount': float(amount) if amount else None,
+                'type': "Debit" if float(balance) < previous_balance else "Credit",
                 'balance': float(balance) if balance else None
             })
+
+            previous_balance = float(balance)
 
     return transactions
 
@@ -76,6 +80,13 @@ def parse_pdf(file_path):
     
     return account_info, transactions
 
+# def main():
+#     file_path = "files/statement_1.pdf"
 
+#     account_info, transactions = parse_pdf(file_path)
+#     print(transactions)
+
+# if __name__=="__main__":
+#     main()
 
 

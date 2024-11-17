@@ -24,7 +24,8 @@ def initialize_database(db_name):
             account_id INTEGER,
             date TEXT,
             description TEXT,
-            credit_or_debit REAL,
+            amount REAL,
+            type TEXT,
             balance REAL,
             FOREIGN KEY (account_id) REFERENCES Account(account_id)
         )
@@ -63,13 +64,14 @@ def insert_transactions(account_id, transactions, db_name):
     # Insert each transaction linked to the account_id
     for transaction in transactions:
         cursor.execute('''
-            INSERT INTO [Transaction] (account_id, date, description, credit_or_debit, balance)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO [Transaction] (account_id, date, description, amount, type, balance)
+            VALUES (?, ?, ?, ?, ?, ?)
         ''', (
             account_id,
             transaction['date'],
             transaction['description'],
-            transaction['credit_or_debit'],
+            transaction['amount'],
+            transaction['type'],
             transaction['balance']
         ))
 

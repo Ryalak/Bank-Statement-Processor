@@ -15,6 +15,62 @@ UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+@app.route('/transactions', methods=['GET'])
+def get_transactions():
+    """
+    API Endpoint: Retrieve transaction details by statement UUID.
+    """
+    # Get the UUID from the query parameters
+    statement_uuid = request.args.get('uuid')
+
+    if not statement_uuid:
+        return jsonify({"error": "UUID is required"}), 400
+
+    db_name = "bank_statements.db"
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+
+    # Query the Account table to get the account_id using the UUID
+    cursor.execute('SELECT account_id FROM Account WHERE uuid = ?', (statement_uuid,))
+    account = cursor.fetchone()
+
+    if not account:
+        return jsonify(
+            {
+                "uuid": statement_uuid,
+                "message": "Statement not found",
+                "data": None
+            }), 404
+
+    account_id = account[0]
+
+    # Query the Transactions table for all transactions linked to this account_id
+    cursor.execute('''
+        SELECT transaction_id, date, description, amount, type, balance FROM [Transaction] WHERE account_id = ? ORDER BY date ASC ''', (account_id,))
+
+    transactions = cursor.fetchall()
+    conn.close()
+
+    transaction_data = [
+        {
+            "uuid": str(transaction[0]),
+            "date": transaction[1],
+            "description": transaction[2],
+            "amount": transaction[3],
+            "type": transaction[4],
+            "balance": transaction[5]
+        }
+        for transaction in transactions
+    ]
+
+    response = {
+        "uuid": statement_uuid,
+        "message": "Success",
+        "data": transaction_data
+    }
+
+    return jsonify(response), 200
+
 @app.route('/account', methods=['GET'])
 def get_account():
     """
@@ -34,7 +90,15 @@ def get_account():
     cursor.execute('SELECT * FROM Account WHERE uuid = ?', (statement_uuid,))
     account = cursor.fetchone()
 
-    cursor.execute('SELECT COUNT(*), MIN(date), MAX(date), MIN(balance), MAX(balance) FROM [Transaction] WHERE account_id = ?', (account[0],))
+    if not account:
+        return jsonify(
+            {
+                "uuid": statement_uuid,
+                "message": "Statement not found",
+                "data": None
+            }), 404
+
+    cursor.execute('SELECT COUNT(*), MIN(date), MAX(date), (SELECT balance FROM [Transaction] WHERE account_id = ? ORDER BY date ASC LIMIT 1), (SELECT balance FROM [Transaction] WHERE account_id = ? ORDER BY date DESC, transaction_id DESC LIMIT 1) FROM [Transaction] WHERE account_id = ?', (account[0], account[0], account[0]))
     transaction_summary = cursor.fetchone()
 
     transaction_count = transaction_summary[0] or 0
@@ -44,9 +108,6 @@ def get_account():
     closing_balance = transaction_summary[4] or 0.0
 
     conn.close()
-
-    if not account:
-        return jsonify({"error": "Account not found"}), 404
 
     # Map account fields to a JSON response
     account_info = OrderedDict({
