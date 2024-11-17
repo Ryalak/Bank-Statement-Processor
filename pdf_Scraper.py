@@ -80,13 +80,5 @@ def parse_pdf(file_path):
     
     return account_info, transactions
 
-# def main():
-#     file_path = "files/statement_1.pdf"
-
-#     account_info, transactions = parse_pdf(file_path)
-#     print(transactions)
-
-# if __name__=="__main__":
-#     main()
 
 

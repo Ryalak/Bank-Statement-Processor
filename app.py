@@ -1,6 +1,5 @@
 import os
 import uuid
-import sqlite3
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from collections import OrderedDict
@@ -39,9 +38,6 @@ def get_transactions():
             }), 404
 
     account_id = account[0]
-
-    print(account_id)
-
     transactions = get_transactions_db(account_id, db_name)
 
     transaction_data = [
