@@ -35,30 +35,47 @@ def extract_transactions(text):
     transactions = []
 
     transaction_pattern = re.compile(
-        r"(\d{4}-\d{2}-\d{2})\s+(.+?)\s+(\d+\.\d+)?\s+(\d+\.\d+)?(?:\s+\d+\.\d+)?",
+        r"(\d{4}-\d{2}-\d{2})\s+(.+?)\s+(\d+\.\d+)?\s+([A-Za-z]?\d+\.\d+)?(?:\s+\d+\.\d+)?",
         re.DOTALL 
+    )
+
+    final_pattern_check = re.compile(
+        r"Transactions not yet processed on your account:"
     )
 
     # Split by lines to handle each transaction individually
     lines = text.split("\n")
     previous_balance = 0.0
+    last_transaction_check = False
+    
     for line in lines:
         match = transaction_pattern.search(line)
         if match:
             date = match.group(1)
             description = match.group(2).strip()
-            amount = match.group(3) if match.group(3) else None
-            balance = match.group(4) if match.group(4) else None
+            amount = match.group(3) 
+            balance = match.group(4)
+
+            if not balance.replace('.', '', 1).isdigit():
+                balance = balance[1:]
 
             transactions.append({
                 'date': date,
-                'description': description,
+                'description': description.strip("-"),
                 'amount': float(amount) if amount else None,
                 'type': "Debit" if float(balance) < previous_balance else "Credit",
                 'balance': float(balance) if balance else None
             })
 
             previous_balance = float(balance)
+            last_transaction_check = True
+        
+        elif final_pattern_check.search(line):
+            last_transaction_check = False
+
+        elif last_transaction_check:
+            transactions[-1]['description'] += line
+            last_transaction_check = False
 
     return transactions
 
@@ -80,10 +97,11 @@ def parse_pdf(file_path):
     
     return account_info, transactions
 
-# def main():
-#     file_path = ".\uploads\statement_3"
+def main():
+    file_path = "files/statement_3.pdf"
 
-#     parse_pdf(file_path)
+    account_info, transactions = parse_pdf(file_path)
+    print(transactions)
 
-# if __name__=="__main__":
-#     main()
+if __name__=="__main__":
+    main()
