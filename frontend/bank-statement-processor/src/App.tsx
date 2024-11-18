@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileUpload from './components/FileUpload';
 import AccountInfo from './components/AccountInfo';
 import TransactionsTable from './components/TransactionsTable';
-import "./App.css";
 
 interface UploadedDocument {
   uuid: string;
-  name: string; // Filename
+  name: string;
 }
 
 const App: React.FC = () => {
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
 
+  // Load documents from localStorage on component mount
+  useEffect(() => {
+    const savedDocuments = localStorage.getItem('uploadedDocuments');
+    if (savedDocuments) {
+      setUploadedDocuments(JSON.parse(savedDocuments));
+    }
+  }, []);
+
+  // Save documents to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedDocuments));
+  }, [uploadedDocuments]);
+
   const handleUploadSuccess = (uuid: string, name: string) => {
-    setUploadedDocuments((prev) => [...prev, { uuid, name }]);
+    const newDocument = { uuid, name };
+    setUploadedDocuments((prev) => [...prev, newDocument]);
     setSelectedUuid(uuid);
   };
 
@@ -28,7 +41,7 @@ const App: React.FC = () => {
 
       {!selectedUuid ? (
         <>
-          <FileUpload onUploadSuccess={(uuid) => handleUploadSuccess(uuid, `Document ${uploadedDocuments.length + 1}`)} />
+          <FileUpload onUploadSuccess={handleUploadSuccess} />
           <h2>Uploaded Documents</h2>
           <ul>
             {uploadedDocuments.map((doc) => (

@@ -132,7 +132,6 @@ def upload_statement():
 
     # Generate a unique identifier for this transaction
     statement_uuid = str(uuid.uuid4())
-    print(statement_uuid)
 
     process_statement(file_path, statement_uuid)
 
