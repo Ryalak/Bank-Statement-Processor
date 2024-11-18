@@ -54,3 +54,25 @@
 .transactions-table th {
   background-color: #f2f2f2; /* Optional: Light background for header */
 }
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul li {
+  margin-bottom: 10px;
+}
+
+ul li button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+ul li button:hover {
+  background-color: #0056b3;
+}

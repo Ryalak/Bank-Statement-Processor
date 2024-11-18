@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 interface FileUploadProps {
-  onUploadSuccess: (uuid: string) => void;
+  onUploadSuccess: (uuid: string, name: string) => void;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
@@ -31,10 +31,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      onUploadSuccess(response.data.uuid);
+      onUploadSuccess(response.data.uuid, file.name);
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert(error);
+      alert('Failed to upload file.');
     } finally {
       setLoading(false);
     }
