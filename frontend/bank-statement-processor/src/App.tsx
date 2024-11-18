@@ -7,7 +7,7 @@ const App: React.FC = () => {
   const [uuid, setUuid] = useState<string | null>(null);
 
   return (
-    <div>
+    <div style={{ paddingLeft: '10px' }}>
       <h1>Bank Statement Processor</h1>
       {!uuid && <FileUpload onUploadSuccess={setUuid} />}
       {uuid && <AccountInfo uuid={uuid} />}

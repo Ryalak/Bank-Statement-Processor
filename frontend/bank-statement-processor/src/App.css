@@ -36,3 +36,21 @@
     transform: rotate(360deg);
   }
 }
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+}
+
+.transactions-table th,
+.transactions-table td {
+  border: 1px solid #dddddd; 
+  padding: 5px;              
+}
+
+.transactions-table th {
+  background-color: #f2f2f2; /* Optional: Light background for header */
+}

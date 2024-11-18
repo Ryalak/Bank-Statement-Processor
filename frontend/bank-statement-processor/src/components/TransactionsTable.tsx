@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import "../App.css";
 
 interface TransactionsTableProps {
   uuid: string;
@@ -26,9 +27,9 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ uuid }) => {
   }
 
   return (
-    <div>
+    <div style={{ paddingLeft: '20px', paddingRight: '20px' }}>
       <h2>Transactions</h2>
-      <table>
+      <table className='transactions-table'>
         <thead>
           <tr>
             <th>Date</th>
@@ -48,6 +49,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ uuid }) => {
               <td>{transaction.type}</td>
             </tr>
           ))}
+          <br />
         </tbody>
       </table>
     </div>
