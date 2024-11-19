@@ -7,7 +7,7 @@ def extract_account_info(text):
     """
     account_info = {}
 
-    # Patterns to match account details
+    # Patterns to match account details using regex patterns
     account_holder_match = re.search(r"Account Holder:\s*(.+)", text)
     account_name_match = re.search(r"Account Name:\s*(.+)", text)
     account_number_match = re.search(r"Account Number:\s*(\d+)", text)
@@ -34,31 +34,36 @@ def extract_transactions(text):
     """
     transactions = []
 
+    # transaction regex pattern
     transaction_pattern = re.compile(
         r"(\d{4}-\d{2}-\d{2})\s+(.+?)\s+(\d+\.\d+)?\s+([A-Za-z]?\d+\.\d+)?(?:\s+\d+\.\d+)?",
         re.DOTALL 
     )
-
+    
+    # Regex pattern to check if there will be no more tranactions 
     final_pattern_check = re.compile(
         r"Transactions not yet processed on your account:"
     )
 
     # Split by lines to handle each transaction individually
     lines = text.split("\n")
-    previous_balance = 0.0
+    previous_balance = 0.0 # Used to determine whether an amount is Debit or Credit
     last_transaction_check = False
     
     for line in lines:
-        match = transaction_pattern.search(line)
+        match = transaction_pattern.search(line) # Match transaction pattern to line
         if match:
+            # Extract different components of transaction
             date = match.group(1)
             description = match.group(2).strip()
             amount = match.group(3) 
             balance = match.group(4)
 
+            # A check used in case of invisible currency characters 
             if not balance.replace('.', '', 1).isdigit():
                 balance = balance[1:]
 
+            # Add transactions to an array
             transactions.append({
                 'date': date,
                 'description': description.strip("-"),
@@ -70,9 +75,11 @@ def extract_transactions(text):
             previous_balance = float(balance)
             last_transaction_check = True
         
+        # Used to flag final transaction
         elif final_pattern_check.search(line):
             last_transaction_check = False
 
+        # Used for multi-line descriptions
         elif last_transaction_check:
             transactions[-1]['description'] += line
             last_transaction_check = False
@@ -86,7 +93,7 @@ def parse_pdf(file_path):
     account_info = {}
     transactions = []
     
-    with pdfplumber.open(file_path) as pdf:
+    with pdfplumber.open(file_path) as pdf: # Open file with pdfplumber and extract the text on each page
         for page in pdf.pages:
             text = page.extract_text()
             if text:
@@ -96,12 +103,3 @@ def parse_pdf(file_path):
                 transactions.extend(extract_transactions(text))
     
     return account_info, transactions
-
-def main():
-    file_path = "files/statement_3.pdf"
-
-    account_info, transactions = parse_pdf(file_path)
-    print(transactions)
-
-if __name__=="__main__":
-    main()

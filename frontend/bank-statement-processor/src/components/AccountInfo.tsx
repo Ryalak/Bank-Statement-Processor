@@ -8,6 +8,7 @@ interface AccountInfoProps {
 const AccountInfo: React.FC<AccountInfoProps> = ({ uuid }) => {
   const [accountInfo, setAccountInfo] = useState<any>(null);
 
+  // Await API requests
   useEffect(() => {
     const fetchAccountInfo = async () => {
       try {
@@ -25,6 +26,7 @@ const AccountInfo: React.FC<AccountInfoProps> = ({ uuid }) => {
     return <div>Loading account info...</div>;
   }
 
+  // Display all the data using accountInfo
   return (
     <div style={{ paddingLeft: '20px' }}>
       <h2>Account Information</h2>

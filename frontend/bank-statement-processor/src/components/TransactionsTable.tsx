@@ -9,6 +9,7 @@ interface TransactionsTableProps {
 const TransactionsTable: React.FC<TransactionsTableProps> = ({ uuid }) => {
   const [transactions, setTransactions] = useState<any[]>([]);
 
+  // Await /transaction API endpoint and set data
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -26,6 +27,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({ uuid }) => {
     return <div>Loading transactions...</div>;
   }
 
+  // Display all information in a table 
   return (
     <div style={{ paddingLeft: '20px', paddingRight: '20px' }}>
       <h2>Transactions</h2>

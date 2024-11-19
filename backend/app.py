@@ -31,6 +31,7 @@ def get_transactions():
 
     account, transaction_summary = get_account_db(statement_uuid, db_name)
 
+    # If UUID is incorrect
     if not account:
         return jsonify(
             {
@@ -42,6 +43,7 @@ def get_transactions():
     account_id = account[0]
     transactions = get_transactions_db(account_id, db_name)
 
+    # Extract all transactions
     transaction_data = [
         {
             "uuid": str(transaction[0]),
@@ -75,6 +77,7 @@ def get_account():
 
     account, transaction_summary = get_account_db(statement_uuid, db_name)
 
+    # If UUID is incorrect
     if not account:
         return jsonify(
             {

@@ -24,6 +24,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
     const formData = new FormData();
     formData.append('statement', file);
 
+    // Await API request for /statement endpoint and save UUID
     try {
       setLoading(true);
       const response = await axios.post('http://127.0.0.1:5000/statement', formData, {
